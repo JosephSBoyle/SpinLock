@@ -4,7 +4,9 @@
 #include <stdbool.h>
 #include <assert.h>
 #include <stdio.h>
+#include <stdlib.h>
 
+// possible lock states.
 #define UNLOCKED 0
 #define LOCKED   1
 
@@ -21,28 +23,28 @@ static bool atomic_compare_and_exchange(int* lock, int compare_value, int exchan
     );
 }
 
-typedef struct spinlock {
-    int state;    
-} spinlock;
-
-
-void spinlock_lock(spinlock* spinlock) {
-    while (!atomic_compare_and_exchange(&spinlock->state, UNLOCKED, LOCKED));
+/* Obtain the lock. */
+void spin_lock(int* lock) {
+    while (!atomic_compare_and_exchange(lock, UNLOCKED, LOCKED));
 }
 
-void spinlock_unlock(spinlock* spinlock) {
-    if (!atomic_compare_and_exchange(&spinlock->state, LOCKED, UNLOCKED))
-        // Somebody is attempting to release the lock but it is not held!
-        exit(1);
+
+/* Release the lock, returning whether or not the operation succeeded.
+   Returns false if the lock was already unlocked. */
+bool spin_unlock(int* lock) {
+    return atomic_compare_and_exchange(lock, LOCKED, UNLOCKED);
 }
 
 int main(void) {
-    spinlock lock = {UNLOCKED};
+    static int lock = UNLOCKED;
+    
+    spin_lock(&lock);
+    assert(lock == LOCKED);
 
-    spinlock_lock(&lock);
-    assert(lock.state == LOCKED);
-
-    spinlock_unlock(&lock);
-    assert(lock.state == UNLOCKED);
+    assert(spin_unlock(&lock) == true);
+    assert(lock == UNLOCKED);
+    
+    // Attempting to unlock an unlocked lock should fail.
+    assert(spin_unlock(&lock) == false);
     return 0;
 }
