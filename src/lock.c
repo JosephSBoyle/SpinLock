@@ -35,16 +35,3 @@ bool spin_unlock(int* lock) {
     return atomic_compare_and_exchange(lock, LOCKED, UNLOCKED);
 }
 
-int main(void) {
-    static int lock = UNLOCKED;
-    
-    spin_lock(&lock);
-    assert(lock == LOCKED);
-
-    assert(spin_unlock(&lock) == true);
-    assert(lock == UNLOCKED);
-    
-    // Attempting to unlock an unlocked lock should fail.
-    assert(spin_unlock(&lock) == false);
-    return 0;
-}
