@@ -32,7 +32,6 @@ typedef struct shared_resource {
 #define INIT_RESOURCE {0, 0}
 
 
-
 /* Used as an argument to `my_thread`. */
 typedef struct thread_params {
     int id;
@@ -76,6 +75,7 @@ void test_multi_threaded() {
     pthread_join(thread1, 0);
     pthread_join(thread2, 0);
 
+    assert(lock == UNLOCKED);
     assert(r.acquisitions == TOTAL_ACQUISITIONS);
 }
 
@@ -84,6 +84,6 @@ int main(void) {
     test_single_threaded();
     test_multi_threaded();
 
-    printf("\n=====================All tests passed!=====================\n");
+    printf("=====================All tests passed!=====================\n");
     return 0;
 }
